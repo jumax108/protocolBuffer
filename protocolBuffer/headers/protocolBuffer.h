@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Windows.h>
+
 class CProtocolBuffer {
 
 public:
@@ -51,13 +53,11 @@ public:
 	int getUsedSize();
 	int getFreeSize();
 
-	char* getRearPtr();
-	char* getFrontPtr();
-
-	void moveRear(unsigned int size);
-	void moveFront(unsigned int size);
+	bool moveRear(int addValue);
+	bool moveFront(int addValue);
 
 	void frontSetZero();
+	void rearSetZero();
 
 private:
 
@@ -69,5 +69,8 @@ private:
 	static int _resizeLogCount;
 
 	void resize(unsigned int cap, bool writeFile = true);
+
+	static HANDLE _heap;
+	static unsigned int _heapUseCount;
 
 };

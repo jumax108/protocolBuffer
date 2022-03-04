@@ -5,8 +5,13 @@
 #include "headers/protocolBuffer.h"
 
 int CProtocolBuffer::_resizeLogCount = 0;
+unsigned int CProtocolBuffer::_heapUseCount = 0;
 
 CProtocolBuffer::CProtocolBuffer(unsigned int size) {
+
+	if(InterlockedIncrement(&_heapUseCount) == 1){
+		_heap = HeapCreate(0, 0, 0);
+	}
 
 	_capacity = size;
 
@@ -17,52 +22,90 @@ CProtocolBuffer::CProtocolBuffer(unsigned int size) {
 		return ;
 	}
 
-	_buffer = (char*)malloc(_capacity);
-	ZeroMemory(_buffer, _capacity);
-	
+	_buffer = (char*)HeapAlloc(_heap, HEAP_ZERO_MEMORY, _capacity);	
 }
 
 CProtocolBuffer::~CProtocolBuffer() {
 
 	free(_buffer);
 
+	if(InterlockedDecrement(&_heapUseCount) == 0){
+		HeapDestroy(_heap);
+	}
+
+}
+
+void CProtocolBuffer::frontSetZero(){
+	_front = 0;
+}
+
+void CProtocolBuffer::rearSetZero(){
+	_rear = 0;
+}
+
+bool CProtocolBuffer::moveFront(int addValue){
+	if(_front + addValue > _rear){
+		return false;
+	}
+
+	_front += addValue;
+	return true;
+}
+
+bool CProtocolBuffer::moveRear(int addValue){
+	if(_rear + addValue > _capacity){
+		return false;
+	}
+
+	_rear += addValue;
+	return true;
+}
+
+int CProtocolBuffer::getFreeSize(){
+	return _capacity - _rear;
+}
+
+int CProtocolBuffer::getUsedSize(){
+	return _rear - _front;
 }
 
 void CProtocolBuffer::resize(unsigned int cap, bool writeFile) {
 
-	char* newBuffer = (char*)malloc(cap);
+	char* newBuffer = (char*)HeapAlloc(_heap, 0, cap);
 	
 	memcpy(newBuffer, _buffer, _capacity);
 
-	//printf("freeBuffer: %I64x\n",_buffer);
-	free(_buffer);
+	HeapFree(_heap, 0, _buffer);
 
 	_buffer = newBuffer;
 
-	wchar_t wcsTime[26] = {0,};
-	time_t nowTime;
-	time(&nowTime);
-	tm now;
-	localtime_s(&now, &nowTime);
-	wchar_t fileName[50] = {0,};
-	int cnt = InterlockedIncrement((LONG*)&_resizeLogCount);
-	swprintf_s(fileName, 50, L"resizeLog_%04d%02d%02d_%02d%02d%02d_%d.txt", now.tm_year+1900, now.tm_mon, now.tm_mday, now.tm_hour, now.tm_min, now.tm_sec, cnt);
+	if(writeFile == true) {
 
-	FILE* resizeLog;
-	_wfopen_s(&resizeLog, fileName, L"w");
+		wchar_t wcsTime[26] = {0,};
+		time_t nowTime;
+		time(&nowTime);
+		tm now;
+		localtime_s(&now, &nowTime);
+		wchar_t fileName[50] = {0,};
+		int cnt = InterlockedIncrement((LONG*)&_resizeLogCount);
+		swprintf_s(fileName, 50, L"resizeLog_%04d%02d%02d_%02d%02d%02d_%d.txt", now.tm_year+1900, now.tm_mon, now.tm_mday, now.tm_hour, now.tm_min, now.tm_sec, cnt);
 
-	fwprintf_s(resizeLog, L"protocol buffer resized\n\nbefore size: %d\nafter size: %d\n\nbuffer start in hex\n", _capacity, _capacity * 2);
-	
-	char* bufEnd = _buffer + _capacity;
-	for (char* bufIter = _buffer; bufIter != bufEnd; ++bufIter) {
-		if ((bufEnd - bufIter) % 10 == 0) {
-			fwprintf_s(resizeLog, L"\n");
+		FILE* resizeLog;
+		_wfopen_s(&resizeLog, fileName, L"w");
+
+		fwprintf_s(resizeLog, L"protocol buffer resized\n\nbefore size: %d\nafter size: %d\n\nbuffer start in hex\n", _capacity, _capacity * 2);
+
+		char* bufEnd = _buffer + _capacity;
+		for (char* bufIter = _buffer; bufIter != bufEnd; ++bufIter) {
+			if ((bufEnd - bufIter) % 10 == 0) {
+				fwprintf_s(resizeLog, L"\n");
+			}
+			fwprintf_s(resizeLog, L"%02X ", *bufIter);
 		}
-		fwprintf_s(resizeLog, L"%02X ", *bufIter);
+
+		fclose(resizeLog);
+	
 	}
-
-	fclose(resizeLog);
-
 	_capacity = cap;
 }
 
@@ -211,7 +254,6 @@ CProtocolBuffer* CProtocolBuffer::operator<<(const double data) {
 	return this;
 }
 #pragma endregion
-
 #pragma region("operator>>")
 
 CProtocolBuffer* CProtocolBuffer::operator>>(char& data) {
