@@ -1,9 +1,6 @@
-﻿#include <stdio.h>
-#include <Windows.h>
-#include <time.h>
+﻿#include "headers/protocolBuffer.h"
 
-#include "headers/protocolBuffer.h"
-
+HANDLE CProtocolBuffer::_heap;
 int CProtocolBuffer::_resizeLogCount = 0;
 unsigned int CProtocolBuffer::_heapUseCount = 0;
 
@@ -27,7 +24,7 @@ CProtocolBuffer::CProtocolBuffer(unsigned int size) {
 
 CProtocolBuffer::~CProtocolBuffer() {
 
-	free(_buffer);
+	HeapFree(_heap,0,_buffer);
 
 	if(InterlockedDecrement(&_heapUseCount) == 0){
 		HeapDestroy(_heap);
@@ -154,215 +151,238 @@ bool CProtocolBuffer::popDataW(unsigned int size, wchar_t* data) {
 	return true;
 }
 
+char* CProtocolBuffer::getFrontPtr(){
+	return _buffer + _front;
+}
+
+char* CProtocolBuffer::getRearPtr(){
+	return _buffer + _rear;
+}
+
+char* CProtocolBuffer::getBufStart(){
+	return _buffer;
+}
+
 #pragma region("operator<<")
-CProtocolBuffer* CProtocolBuffer::operator<<(char data) {
+CProtocolBuffer& CProtocolBuffer::operator<<(char data) {
 	if (_rear + sizeof(data) > _capacity) {
 		resize(_capacity + sizeof(data));
 	}
 	*(_buffer + _rear) = data;
 	_rear += sizeof(data);
-	return this;
+	return *this;
 }
 
-CProtocolBuffer* CProtocolBuffer::operator<<(unsigned char data) {
+CProtocolBuffer& CProtocolBuffer::operator<<(unsigned char data) {
 	if (_rear + sizeof(data) > _capacity) {
 		resize(_capacity + sizeof(data));
 	}
 	*(_buffer + _rear) = data;
 	_rear += sizeof(data);
-	return this;
+	return *this;
 }
 
-CProtocolBuffer* CProtocolBuffer::operator<<(wchar_t data) {
+CProtocolBuffer& CProtocolBuffer::operator<<(wchar_t data) {
 	if (_rear + sizeof(data) > _capacity) {
 		resize(_capacity + sizeof(data));
 	}
 	*(wchar_t*)(_buffer + _rear) = data;
 	_rear += sizeof(data);
-	return this;
+	return *this;
 }
 
-CProtocolBuffer* CProtocolBuffer::operator<<(short data) {
+CProtocolBuffer& CProtocolBuffer::operator<<(short data) {
 	if (_rear + sizeof(data) > _capacity) {
 		resize(_capacity + sizeof(data));
 	}
 	*(short*)(_buffer + _rear) = data;
 	_rear += sizeof(data);
-	return this;
+	return *this;
 }
 
-CProtocolBuffer* CProtocolBuffer::operator<<(unsigned short data) {
+CProtocolBuffer& CProtocolBuffer::operator<<(unsigned short data) {
 	if (_rear + sizeof(data) > _capacity) {
 		resize(_capacity + sizeof(data));
 	}
 	*(unsigned short*)(_buffer + _rear) = data;
 	_rear += sizeof(data);
-	return this;
+	return *this;
 }
 
-CProtocolBuffer* CProtocolBuffer::operator<<(int data) {
+CProtocolBuffer& CProtocolBuffer::operator<<(int data) {
 	if (_rear + sizeof(data) > _capacity) {
 		resize(_capacity + sizeof(data));
 	}
 	*(int*)(_buffer + _rear) = data;
 	_rear += sizeof(data);
-	return this;
+	return *this;
 }
 
-CProtocolBuffer* CProtocolBuffer::operator<<(unsigned int data) {
+CProtocolBuffer& CProtocolBuffer::operator<<(unsigned int data) {
 	if (_rear + sizeof(data) > _capacity) {
 		resize(_capacity + sizeof(data));
 	}
 	*(unsigned int*)(_buffer + _rear) = data;
 	_rear += sizeof(data);
-	return this;
+	return *this;
 }
 
-CProtocolBuffer* CProtocolBuffer::operator<<(const __int64 data) {
+CProtocolBuffer& CProtocolBuffer::operator<<(const __int64 data) {
 	if (_rear + sizeof(data) > _capacity) {
 		resize(_capacity + sizeof(data));
 	}
 	*(__int64*)(_buffer + _rear) = data;
 	_rear += sizeof(data);
-	return this;
+	return *this;
 }
 
-CProtocolBuffer* CProtocolBuffer::operator<<(const unsigned __int64 data) {
+CProtocolBuffer& CProtocolBuffer::operator<<(const unsigned __int64 data) {
 	if (_rear + sizeof(data) > _capacity) {
 		resize(_capacity + sizeof(data));
 	}
 	*(unsigned __int64*)(_buffer + _rear) = data;
 	_rear += sizeof(data);
-	return this;
+	return *this;
 }
 
-CProtocolBuffer* CProtocolBuffer::operator<<(float data) {
+CProtocolBuffer& CProtocolBuffer::operator<<(float data) {
 	if (_rear + sizeof(data) > _capacity) {
 		resize(_capacity + sizeof(data));
 	}
 	*(float*)(_buffer + _rear) = data;
 	_rear += sizeof(data);
-	return this;
+	return *this;
 }
 
-CProtocolBuffer* CProtocolBuffer::operator<<(const double data) {
+CProtocolBuffer& CProtocolBuffer::operator<<(const double data) {
 	if (_rear + sizeof(data) > _capacity) {
 		resize(_capacity + sizeof(data));
 	}
 	*(double*)(_buffer + _rear) = data;
 	_rear += sizeof(data);
-	return this;
+	return *this;
 }
 #pragma endregion
 #pragma region("operator>>")
 
-CProtocolBuffer* CProtocolBuffer::operator>>(char& data) {
+CProtocolBuffer& CProtocolBuffer::operator>>(char& data) {
 
 	if (_rear - _front < sizeof(data)) {
-		return this;
+		return *this;
 	}
 	data = *(_buffer + _front);
 	_front += sizeof(data);
 
+	return *this;
 }
 
-CProtocolBuffer* CProtocolBuffer::operator>>(unsigned char& data) {
+CProtocolBuffer& CProtocolBuffer::operator>>(unsigned char& data) {
 
 	if (_rear - _front < sizeof(data)) {
-		return this;
+		return *this;
 	}
 	data = *(_buffer + _front);
 	_front += sizeof(data);
 
+	return *this;
 }
 
-CProtocolBuffer* CProtocolBuffer::operator>>(wchar_t& data) {
+CProtocolBuffer& CProtocolBuffer::operator>>(wchar_t& data) {
 
 	if (_rear - _front < sizeof(data)) {
-		return this;
+		return *this;
 	}
 	data = *(wchar_t*)(_buffer + _front);
 	_front += sizeof(data);
 
+	return *this;
 }
 
-CProtocolBuffer* CProtocolBuffer::operator>>(short& data) {
+CProtocolBuffer& CProtocolBuffer::operator>>(short& data) {
 
 	if (_rear - _front < sizeof(data)) {
-		return this;
+		return *this;
 	}
 	data = *(short*)(_buffer + _front);
 	_front += sizeof(data);
 
+	return *this;
 }
 
-CProtocolBuffer* CProtocolBuffer::operator>>(unsigned short& data) {
+CProtocolBuffer& CProtocolBuffer::operator>>(unsigned short& data) {
 
 	if (_rear - _front < sizeof(data)) {
-		return this;
+		return *this;
 	}
 	data = *(unsigned short*)(_buffer + _front);
 	_front += sizeof(data);
 
+	return *this;
 }
 
-CProtocolBuffer* CProtocolBuffer::operator>>(int& data) {
+CProtocolBuffer& CProtocolBuffer::operator>>(int& data) {
 
 	if (_rear - _front < sizeof(data)) {
-		return this;
+		return *this;
 	}
 	data = *(int*)(_buffer + _front);
 	_front += sizeof(data);
 
+	return *this;
 }
 
-CProtocolBuffer* CProtocolBuffer::operator>>(unsigned int& data) {
+CProtocolBuffer& CProtocolBuffer::operator>>(unsigned int& data) {
 
 	if (_rear - _front < sizeof(data)) {
-		return this;
+		return *this;
 	}
 	data = *(unsigned int*)(_buffer + _front);
 	_front += sizeof(data);
 
+	return *this;
 }
 
-CProtocolBuffer* CProtocolBuffer::operator>>(__int64& data) {
+CProtocolBuffer& CProtocolBuffer::operator>>(__int64& data) {
 
 	if (_rear - _front < sizeof(data)) {
-		return this;
+		return *this;
 	}
 	data = *(_int64*)(_buffer + _front);
 	_front += sizeof(data);
 
+	return *this;
 }
 
-CProtocolBuffer* CProtocolBuffer::operator>>(unsigned __int64& data) {
+CProtocolBuffer& CProtocolBuffer::operator>>(unsigned __int64& data) {
 
 	if (_rear - _front < sizeof(data)) {
-		return this;
+		return *this;
 	}
 	data = *(unsigned __int64*)(_buffer + _front);
 	_front += sizeof(data);
 
+	return *this;
 }
 
-CProtocolBuffer* CProtocolBuffer::operator>>(float& data) {
+CProtocolBuffer& CProtocolBuffer::operator>>(float& data) {
 
 	if (_rear - _front < sizeof(data)) {
-		return this;
+		return *this;
 	}
 	data = *(float*)(_buffer + _front);
 	_front += sizeof(data);
 
+	return *this;
 }
 
-CProtocolBuffer* CProtocolBuffer::operator>>(double& data) {
+CProtocolBuffer& CProtocolBuffer::operator>>(double& data) {
 
 	if (_rear - _front < sizeof(data)) {
-		return this;
+		return *this;
 	}
 	data = *(double*)(_buffer + _front);
 	_front += sizeof(data);
 
+	return *this;
 }
 #pragma endregion

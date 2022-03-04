@@ -1,6 +1,8 @@
 #pragma once
 
+#include <stdio.h>
 #include <Windows.h>
+#include <time.h>
 
 class CProtocolBuffer {
 
@@ -10,39 +12,39 @@ public:
    ~CProtocolBuffer();
 
 #pragma region("operator<<")
-	CProtocolBuffer* operator<<(char data);
-	CProtocolBuffer* operator<<(unsigned char data);
+	CProtocolBuffer& operator<<(char data);
+	CProtocolBuffer& operator<<(unsigned char data);
 
-	CProtocolBuffer* operator<<(wchar_t data);
-	CProtocolBuffer* operator<<(short data);
-	CProtocolBuffer* operator<<(unsigned short data);
+	CProtocolBuffer& operator<<(wchar_t data);
+	CProtocolBuffer& operator<<(short data);
+	CProtocolBuffer& operator<<(unsigned short data);
 
-	CProtocolBuffer* operator<<(int data);
-	CProtocolBuffer* operator<<(unsigned int data);
+	CProtocolBuffer& operator<<(int data);
+	CProtocolBuffer& operator<<(unsigned int data);
 
-	CProtocolBuffer* operator<<(__int64 data);
-	CProtocolBuffer* operator<<(unsigned __int64 data);
+	CProtocolBuffer& operator<<(__int64 data);
+	CProtocolBuffer& operator<<(unsigned __int64 data);
 
-	CProtocolBuffer* operator<<(float data);
-	CProtocolBuffer* operator<<(double data);
+	CProtocolBuffer& operator<<(float data);
+	CProtocolBuffer& operator<<(double data);
 #pragma endregion
 
 #pragma region("operator>>")
-	CProtocolBuffer* operator>>(char& data);
-	CProtocolBuffer* operator>>(unsigned char& data);
+	CProtocolBuffer& operator>>(char& data);
+	CProtocolBuffer& operator>>(unsigned char& data);
 
-	CProtocolBuffer* operator>>(wchar_t& data);
-	CProtocolBuffer* operator>>(short& data);
-	CProtocolBuffer* operator>>(unsigned short& data);
+	CProtocolBuffer& operator>>(wchar_t& data);
+	CProtocolBuffer& operator>>(short& data);
+	CProtocolBuffer& operator>>(unsigned short& data);
 
-	CProtocolBuffer* operator>>(int& data);
-	CProtocolBuffer* operator>>(unsigned int& data);
+	CProtocolBuffer& operator>>(int& data);
+	CProtocolBuffer& operator>>(unsigned int& data);
 
-	CProtocolBuffer* operator>>(__int64& data);
-	CProtocolBuffer* operator>>(unsigned __int64& data);
+	CProtocolBuffer& operator>>(__int64& data);
+	CProtocolBuffer& operator>>(unsigned __int64& data);
 
-	CProtocolBuffer* operator>>(float& data);
-	CProtocolBuffer* operator>>(double& data);
+	CProtocolBuffer& operator>>(float& data);
+	CProtocolBuffer& operator>>(double& data);
 #pragma endregion
 
 	void putData(unsigned int size, const char* data);
@@ -59,6 +61,12 @@ public:
 	void frontSetZero();
 	void rearSetZero();
 
+	inline char* getFrontPtr();
+	inline char* getRearPtr();
+	inline char* getBufStart();
+	
+	void resize(unsigned int cap, bool writeFile = true);
+
 private:
 
 	char* _buffer;
@@ -67,8 +75,6 @@ private:
 	unsigned int _rear;
 
 	static int _resizeLogCount;
-
-	void resize(unsigned int cap, bool writeFile = true);
 
 	static HANDLE _heap;
 	static unsigned int _heapUseCount;
