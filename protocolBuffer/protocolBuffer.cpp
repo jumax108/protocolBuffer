@@ -151,18 +151,6 @@ bool CProtocolBuffer::popDataW(unsigned int size, wchar_t* data) {
 	return true;
 }
 
-char* CProtocolBuffer::getFrontPtr(){
-	return _buffer + _front;
-}
-
-char* CProtocolBuffer::getRearPtr(){
-	return _buffer + _rear;
-}
-
-char* CProtocolBuffer::getBufStart(){
-	return _buffer;
-}
-
 #pragma region("operator<<")
 CProtocolBuffer& CProtocolBuffer::operator<<(char data) {
 	if (_rear + sizeof(data) > _capacity) {

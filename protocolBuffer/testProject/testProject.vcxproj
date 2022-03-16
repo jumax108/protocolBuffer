@@ -21,7 +21,7 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{e105cfb8-5ce3-44fa-9921-37473d573583}</ProjectGuid>
+    <ProjectGuid>{1d27a977-e3d0-411b-8003-fa25acd6173d}</ProjectGuid>
     <RootNamespace>testProject</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -82,8 +82,8 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>release\</OutDir>
-    <IntDir>release\objFile\</IntDir>
-    <IncludePath>lib;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <IntDir>release\objFile</IntDir>
+    <LibraryPath>..\release;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
