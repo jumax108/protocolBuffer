@@ -1,6 +1,6 @@
 ﻿#include "headers/protocolBuffer.h"
 
-HANDLE CProtocolBuffer::_heap;
+HANDLE CProtocolBuffer::_heap = NULL;
 int CProtocolBuffer::_resizeLogCount = 0;
 unsigned int CProtocolBuffer::_heapUseCount = 0;
 
@@ -18,6 +18,8 @@ CProtocolBuffer::CProtocolBuffer(unsigned int size) {
 	if(size == 0){
 		return ;
 	}
+
+	while(_heap == NULL) {  } 
 
 	_buffer = (char*)HeapAlloc(_heap, HEAP_ZERO_MEMORY, _capacity);	
 }
