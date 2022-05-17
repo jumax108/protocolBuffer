@@ -1,14 +1,8 @@
 ﻿#include "headers/protocolBuffer.h"
 
-HANDLE CProtocolBuffer::_heap;
 int CProtocolBuffer::_resizeLogCount = 0;
-unsigned int CProtocolBuffer::_heapUseCount = 0;
 
 CProtocolBuffer::CProtocolBuffer(unsigned int size) {
-
-	if(InterlockedIncrement(&_heapUseCount) == 1){
-		_heap = HeapCreate(0, 0, 0);
-	}
 
 	_capacity = size;
 
@@ -19,16 +13,12 @@ CProtocolBuffer::CProtocolBuffer(unsigned int size) {
 		return ;
 	}
 
-	_buffer = (char*)HeapAlloc(_heap, HEAP_ZERO_MEMORY, _capacity);	
+	_buffer = new char[_capacity];	
 }
 
 CProtocolBuffer::~CProtocolBuffer() {
 
-	HeapFree(_heap,0,_buffer);
-
-	if(InterlockedDecrement(&_heapUseCount) == 0){
-		HeapDestroy(_heap);
-	}
+	delete[] _buffer;
 
 }
 
@@ -37,6 +27,11 @@ void CProtocolBuffer::frontSetZero(){
 }
 
 void CProtocolBuffer::rearSetZero(){
+	_rear = 0;
+}
+
+void CProtocolBuffer::clear() {
+	_front = 0;
 	_rear = 0;
 }
 
@@ -68,11 +63,11 @@ int CProtocolBuffer::getUsedSize(){
 
 void CProtocolBuffer::resize(unsigned int cap, bool writeFile) {
 
-	char* newBuffer = (char*)HeapAlloc(_heap, 0, cap);
+	char* newBuffer = new char[cap];
 	
 	memcpy(newBuffer, _buffer, _capacity);
 
-	HeapFree(_heap, 0, _buffer);
+	delete[] _buffer;
 
 	_buffer = newBuffer;
 
