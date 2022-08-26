@@ -10,24 +10,17 @@ CProtocolBuffer::CProtocolBuffer(unsigned int size) {
 	_rear = 0;
 	
 	if(size == 0){
+		_buffer = nullptr;
 		return ;
 	}
 
-	_buffer = new char[_capacity];	
+	_buffer = (char*)malloc(_capacity);
 }
 
 CProtocolBuffer::~CProtocolBuffer() {
 
-	delete[] _buffer;
+	free(_buffer);
 
-}
-
-void CProtocolBuffer::frontSetZero(){
-	_front = 0;
-}
-
-void CProtocolBuffer::rearSetZero(){
-	_rear = 0;
 }
 
 void CProtocolBuffer::clear() {
@@ -35,22 +28,12 @@ void CProtocolBuffer::clear() {
 	_rear = 0;
 }
 
-bool CProtocolBuffer::moveFront(int addValue){
-	if(_front + addValue > _rear){
-		return false;
-	}
-
+void CProtocolBuffer::moveFront(int addValue){
 	_front += addValue;
-	return true;
 }
 
-bool CProtocolBuffer::moveRear(int addValue){
-	if(_rear + addValue > _capacity){
-		return false;
-	}
-
+void CProtocolBuffer::moveRear(int addValue){
 	_rear += addValue;
-	return true;
 }
 
 int CProtocolBuffer::getFreeSize(){
@@ -63,11 +46,11 @@ int CProtocolBuffer::getUsedSize(){
 
 void CProtocolBuffer::resize(unsigned int cap, bool writeFile) {
 
-	char* newBuffer = new char[cap];
+	char* newBuffer = (char*)malloc(cap);
 	
 	memcpy(newBuffer, _buffer, _capacity);
 
-	delete[] _buffer;
+	free(_buffer);
 
 	_buffer = newBuffer;
 
@@ -122,7 +105,7 @@ void CProtocolBuffer::putDataW(unsigned int size, const wchar_t* data) {
 
 }
 
-bool CProtocolBuffer::popData(unsigned int size, unsigned char* data) {
+bool CProtocolBuffer::popData(unsigned int size, char* data) {
 
 	if (_rear - _front < size) {
 		return false;
@@ -157,6 +140,15 @@ CProtocolBuffer& CProtocolBuffer::operator<<(char data) {
 }
 
 CProtocolBuffer& CProtocolBuffer::operator<<(unsigned char data) {
+	if (_rear + sizeof(data) > _capacity) {
+		resize(_capacity + sizeof(data));
+	}
+	*(_buffer + _rear) = data;
+	_rear += sizeof(data);
+	return *this;
+}
+
+CProtocolBuffer& CProtocolBuffer::operator<<(bool data) {
 	if (_rear + sizeof(data) > _capacity) {
 		resize(_capacity + sizeof(data));
 	}
@@ -260,6 +252,17 @@ CProtocolBuffer& CProtocolBuffer::operator>>(char& data) {
 }
 
 CProtocolBuffer& CProtocolBuffer::operator>>(unsigned char& data) {
+
+	if (_rear - _front < sizeof(data)) {
+		return *this;
+	}
+	data = *(_buffer + _front);
+	_front += sizeof(data);
+
+	return *this;
+}
+
+CProtocolBuffer& CProtocolBuffer::operator>>(bool& data) {
 
 	if (_rear - _front < sizeof(data)) {
 		return *this;

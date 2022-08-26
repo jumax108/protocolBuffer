@@ -446,3 +446,4 @@ FodyWeavers.xsd
 *.vcxproj.filters
 *.vcxproj.user
 *.bat
+/testProject

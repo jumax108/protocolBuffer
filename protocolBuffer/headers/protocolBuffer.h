@@ -14,6 +14,7 @@ public:
 #pragma region("operator<<")
 	CProtocolBuffer& operator<<(char data);
 	CProtocolBuffer& operator<<(unsigned char data);
+	CProtocolBuffer& operator<<(bool data);
 
 	CProtocolBuffer& operator<<(wchar_t data);
 	CProtocolBuffer& operator<<(short data);
@@ -32,6 +33,7 @@ public:
 #pragma region("operator>>")
 	CProtocolBuffer& operator>>(char& data);
 	CProtocolBuffer& operator>>(unsigned char& data);
+	CProtocolBuffer& operator>>(bool& data);
 
 	CProtocolBuffer& operator>>(wchar_t& data);
 	CProtocolBuffer& operator>>(short& data);
@@ -49,17 +51,14 @@ public:
 
 	void putData(unsigned int size, const char* data);
 	void putDataW(unsigned int size, const wchar_t* data);
-	bool popData(unsigned int size, unsigned char* data);
+	bool popData(unsigned int size, char* data);
 	bool popDataW(unsigned int size, wchar_t* data);
 
 	int getUsedSize();
 	int getFreeSize();
 
-	bool moveRear(int addValue);
-	bool moveFront(int addValue);
-
-	void frontSetZero();
-	void rearSetZero();
+	void moveRear(int addValue);
+	void moveFront(int addValue);
 
 	void clear();
 
@@ -73,16 +72,17 @@ public:
 		return _buffer;
 	}
 	
-	int getRear() {
+	inline int getRear() {
 		return _rear;
 	}
-	int getFront() {
+	inline int getFront() {
 		return _front;
 	}
 
-	void resize(unsigned int cap, bool writeFile = true);
 
 private:
+
+	void resize(unsigned int cap, bool writeFile = true);
 
 	char* _buffer;
 	unsigned int _capacity;
