@@ -1,4 +1,4 @@
-﻿#include "headers/protocolBuffer.h"
+﻿#include "../headers/protocolBuffer.h"
 
 int CProtocolBuffer::_resizeLogCount = 0;
 
